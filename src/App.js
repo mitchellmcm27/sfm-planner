@@ -61,8 +61,8 @@ class App extends Component {
                 className={"A" + i + j}
                 style={{
                   position: "absolute",
-                  top: height * (1 - this.state.overlap) * i,
-                  left: width * (1 - this.state.overlap) * j,
+                  top: height * (1 - this.state.overlap) * i - 2,
+                  left: width * (1 - this.state.overlap) * j - 2,
                   width: width,
                   height: height,
                   border: "2px solid black",
@@ -72,9 +72,10 @@ class App extends Component {
                 <span
                   style={{
                     position: "absolute",
-                    left: 0,
-                    bottom: height / 2,
-                    textAlign: "center"
+                    left: width + 3,
+                    width: width,
+                    top: height / 2,
+                    textAlign: "left"
                   }}
                 >
                   {this.state.dx * this.state.resolution + " m"}
@@ -83,7 +84,7 @@ class App extends Component {
                   style={{
                     position: "absolute",
                     left: width / 2,
-                    bottom: 0,
+                    top: height + 3,
                     textAlign: "center"
                   }}
                 >
