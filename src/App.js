@@ -27,6 +27,89 @@ class App extends Component {
     });
   };
 
+  renderFootprints(height, width) {
+    const nrows = 12;
+    const ncols = 6;
+    let rows = new Array(nrows);
+    let cols = new Array(ncols);
+
+    for (let i = 0; i < nrows; i++) rows[i] = i;
+    for (let j = 0; j < ncols; j++) cols[j] = j;
+
+    return cols.map(j => {
+      return rows.map(i => {
+        const even = j % 2 === 0;
+        const t = j * i / (nrows * ncols);
+        const color = colorInterpolation("#ff0000", "#0000ff", t);
+        const last = j == ncols - 1 && i == nrows - 1;
+        return (
+          <div>
+            <div
+              className={"A" + i + j}
+              style={{
+                position: "absolute",
+                top: height * (1 - this.state.overlap) * i,
+                left: width * (1 - this.state.overlap) * j,
+                width: width,
+                height: height,
+                background: "blue",
+                opacity: 0.15
+              }}
+            />
+            {last && (
+              <span
+                className={"A" + i + j}
+                style={{
+                  position: "absolute",
+                  top: height * (1 - this.state.overlap) * i,
+                  left: width * (1 - this.state.overlap) * j,
+                  width: width,
+                  height: height,
+                  border: "2px solid black",
+                  opacity: 0.5
+                }}
+              >
+                <span
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    bottom: height / 2,
+                    textAlign: "center"
+                  }}
+                >
+                  {this.state.dx * this.state.resolution + " m"}
+                </span>
+                <span
+                  style={{
+                    position: "absolute",
+                    left: width / 2,
+                    bottom: 0,
+                    textAlign: "center"
+                  }}
+                >
+                  {this.state.dy * this.state.resolution + " m"}
+                </span>
+              </span>
+            )}
+          </div>
+        );
+      });
+    });
+  }
+
+  renderFootprint(height, width) {
+    return (
+      <div
+        style={{
+          width: width,
+          height: height,
+          background: "blue",
+          opacity: 0.15
+        }}
+      />
+    );
+  }
+
   render() {
     const droneHeight = (this.state.dy *
       this.state.resolution /
@@ -39,9 +122,6 @@ class App extends Component {
     const frameInterval = (height *
       (1 - this.state.overlap) /
       this.state.speed).toFixed(2);
-
-    const Js = [0, 1, 2, 3, 4, 5];
-    const Is = [0, 1, 2, 3, 4, 5];
 
     return (
       <div style={{ height: "100%", width: "100%", padding: 12 }}>
@@ -127,60 +207,14 @@ class App extends Component {
             )}
           </h3>
         </form>
+        <div style={{ float: "left", width: "50%" }}>
+          <h3>Single photo</h3>
+          {this.renderFootprint(height, width)}
 
-        <div style={{ float: "left", width: "50%", position: "relative" }}>
-          <Line
-            x0={width / 2}
-            y0={0}
-            x1={0}
-            y1={droneHeight}
-            border="1px solid red"
-          />
-          <Line
-            x0={width / 2}
-            y0={0}
-            x1={width}
-            y1={droneHeight}
-            border="1px solid red"
-          />
-          {Js.map(j => {
-            return Is.map(i => {
-              const even = j % 2 === 0;
-              const t = (j + i) / (Js[Js.length - 1] + Is[Is.length - 1]);
-              const color = colorInterpolation("#ff0000", "#0000ff", t);
-              const last = j == Js[Js.length - 1] && i == Is[Is.length - 1];
-              return (
-                <div>
-                  <div
-                    className={"A" + i + j}
-                    style={{
-                      position: "absolute",
-                      top: height * (1 - this.state.overlap) * i,
-                      left: width * (1 - this.state.overlap) * j,
-                      width: width,
-                      height: height,
-                      background: color,
-                      opacity: 0.15
-                    }}
-                  />
-                  {last && (
-                    <div
-                      className={"A" + i + j}
-                      style={{
-                        position: "absolute",
-                        top: height * (1 - this.state.overlap) * i,
-                        left: width * (1 - this.state.overlap) * j,
-                        width: width,
-                        height: height,
-                        border: "2px solid black",
-                        opacity: 0.5
-                      }}
-                    />
-                  )}
-                </div>
-              );
-            });
-          })}
+          <h3>Survey area</h3>
+          <div style={{ position: "relative" }}>
+            {this.renderFootprints(height, width)}
+          </div>
         </div>
       </div>
     );
