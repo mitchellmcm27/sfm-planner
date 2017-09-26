@@ -35,7 +35,19 @@ class App extends Component {
     });
   };
 
-  renderFootprints(height, width, nrows, ncols) {
+  renderFootprints(height, width, nrows_in, ncols_in) {
+    // convert to number
+    let nrows = nrows_in * 1;
+    let ncols = ncols_in * 1;
+
+    // handle bad input
+    if (!isFinite(nrows) || isNaN(nrows)) nrows = 0;
+    if (!isFinite(ncols) || isNaN(ncols)) ncols = 0;
+
+    // make sure we aren't given too many things to process
+    if (nrows > 50) nrows = 50;
+    if (ncols > 50) ncols = 50;
+
     let rows = new Array(nrows);
     let cols = new Array(ncols);
 
@@ -46,7 +58,7 @@ class App extends Component {
       return rows.map(i => {
         const even = j % 2 === 0;
         const t = j * i / (nrows * ncols);
-        const color = colorInterpolation("#ff0000", "#0000ff", t);
+        const color = colorInterpolation("#ff3355", "#1020ff", t);
         const last = j == ncols - 1 && i == nrows - 1;
         return (
           <div>
@@ -58,7 +70,7 @@ class App extends Component {
                 left: width * (1 - this.state.overlapX) * j,
                 width: width,
                 height: height,
-                background: "blue",
+                background: "#1020ff",
                 opacity: 0.15
               }}
             />
@@ -122,7 +134,7 @@ class App extends Component {
             height / 2,
           width: this.state.surveyDx,
           height: this.state.surveyDy,
-          border: "3px solid red"
+          border: "3px solid #ff3355"
         }}
       />
     );
@@ -134,7 +146,7 @@ class App extends Component {
         style={{
           width: width,
           height: height,
-          background: "blue",
+          background: "#1020ff",
           opacity: 0.15
         }}
       />
@@ -150,15 +162,18 @@ class App extends Component {
     const height = this.state.dy * this.state.resolution;
     const width = this.state.dx * this.state.resolution;
 
-    const frameInterval = (height *
-      (1 - this.state.overlapY) /
-      this.state.speed).toFixed(2);
+    const frontLap = Math.max(0, Math.min(1, this.state.overlapY));
+    const sideLap = Math.max(0, Math.min(1, this.state.overlapX));
+
+    const frameInterval = Math.abs(
+      (height * (1 - frontLap) / this.state.speed).toFixed(2)
+    );
 
     const nrows =
-      Math.ceil(this.state.surveyDy / height / (1 - this.state.overlapY)) +
+      Math.ceil(this.state.surveyDy / height / (1 - frontLap)) +
       this.state.extraPhotos * 1;
     const ncols =
-      Math.ceil(this.state.surveyDx / width / (1 - this.state.overlapX)) +
+      Math.ceil(this.state.surveyDx / width / (1 - sideLap)) +
       this.state.extraPhotos * 1;
 
     const diskSpace =
@@ -169,6 +184,8 @@ class App extends Component {
       this.state.bits /
       8 /
       1000000000;
+
+    const shutterSpeed = this.state.resolution / Math.abs(this.state.speed);
 
     return (
       <div style={{ height: "100%", width: "100%", padding: 12 }}>
@@ -257,7 +274,7 @@ class App extends Component {
               value={this.state.extraPhotos}
               onChange={this.handleInputChange}
             />
-            percent
+            layers
           </label>
           <br />
           <label style={inputLabel}>
