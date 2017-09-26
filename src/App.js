@@ -161,10 +161,28 @@ class App extends Component {
       Math.ceil(this.state.surveyDx / width / (1 - this.state.overlapX)) +
       this.state.extraPhotos * 1;
 
+    const diskSpace =
+      nrows *
+      ncols *
+      this.state.dx *
+      this.state.dy *
+      this.state.bits /
+      8 /
+      1000000000;
+
     return (
       <div style={{ height: "100%", width: "100%", padding: 12 }}>
+        <h1>SfM Planner</h1>
+        <div>A tool to estimate parameters for UAS surveying.</div>
+        <div>
+          Given desired resolution, survey area, photo overlap, etc., the
+          software calculates flight parameters.
+        </div>
+        <div>Default inputs are based on the DJI Mavic Pro.</div>
         <form style={{ float: "left" }}>
-          <label>
+          <h2>Inputs</h2>
+
+          <label style={inputLabel}>
             Desired resolution:
             <DebounceInput
               debounceTimeout={debounceTimeout}
@@ -172,13 +190,15 @@ class App extends Component {
               name="resolution"
               value={this.state.resolution}
               onChange={this.handleInputChange}
+              style={input}
             />
             meters per pixel
           </label>
           <br />
-          <label>
+          <label style={inputLabel}>
             Survey size (x):
             <DebounceInput
+              style={input}
               debounceTimeout={debounceTimeout}
               type="text"
               name="surveyDx"
@@ -188,9 +208,10 @@ class App extends Component {
             meters
           </label>
           <br />
-          <label>
+          <label style={inputLabel}>
             Survey size (y):
             <DebounceInput
+              style={input}
               debounceTimeout={debounceTimeout}
               type="text"
               name="surveyDy"
@@ -200,9 +221,10 @@ class App extends Component {
             meters
           </label>
           <br />
-          <label>
+          <label style={inputLabel}>
             Desired image overlap (x):
             <DebounceInput
+              style={input}
               debounceTimeout={debounceTimeout}
               type="text"
               name="overlapX"
@@ -212,9 +234,10 @@ class App extends Component {
             percent
           </label>
           <br />
-          <label>
+          <label style={inputLabel}>
             Desired image overlap (y):
             <DebounceInput
+              style={input}
               debounceTimeout={debounceTimeout}
               type="text"
               name="overlapY"
@@ -224,9 +247,10 @@ class App extends Component {
             percent
           </label>
           <br />
-          <label>
+          <label style={inputLabel}>
             Extra layers of photos on edges:
             <DebounceInput
+              style={input}
               debounceTimeout={debounceTimeout}
               type="text"
               name="extraPhotos"
@@ -236,9 +260,10 @@ class App extends Component {
             percent
           </label>
           <br />
-          <label>
+          <label style={inputLabel}>
             Drone speed:
             <DebounceInput
+              style={input}
               debounceTimeout={debounceTimeout}
               type="text"
               name="speed"
@@ -248,9 +273,10 @@ class App extends Component {
             meters per second
           </label>
           <br />
-          <label>
+          <label style={inputLabel}>
             Image dimension (x):
             <DebounceInput
+              style={input}
               debounceTimeout={debounceTimeout}
               type="text"
               name="dx"
@@ -260,9 +286,10 @@ class App extends Component {
             pixels
           </label>
           <br />
-          <label>
+          <label style={inputLabel}>
             Image dimension (y):
             <DebounceInput
+              style={input}
               debounceTimeout={debounceTimeout}
               type="text"
               name="dy"
@@ -272,9 +299,10 @@ class App extends Component {
             pixels
           </label>
           <br />
-          <label>
+          <label style={inputLabel}>
             Camera field of view:
             <DebounceInput
+              style={input}
               debounceTimeout={debounceTimeout}
               type="text"
               name="fov"
@@ -284,9 +312,10 @@ class App extends Component {
             degrees
           </label>
           <br />
-          <label>
+          <label style={inputLabel}>
             Image bit depth:
             <DebounceInput
+              style={input}
               debounceTimeout={debounceTimeout}
               type="text"
               name="bits"
@@ -295,47 +324,58 @@ class App extends Component {
             />
             bits per pixel
           </label>
-          <h3>
+          <h2>Calculations</h2>
+          <div style={output}>
             {isNaN(droneHeight) ? (
               "Check input"
             ) : (
               `Drone height: ${droneHeight} meters`
             )}
-          </h3>
+          </div>
 
-          <h3>
+          <div style={output}>
+            {" "}
             {isNaN(frameInterval) ? (
               "Check input"
             ) : (
               `Photo interval: ${frameInterval} seconds`
             )}
-          </h3>
+          </div>
 
-          <h3>
+          <div style={output}>
+            {" "}
             {isNaN(nrows * ncols) ? (
               "Check input"
             ) : (
               `Number of photos: ${nrows * ncols} (${nrows}x${ncols})`
             )}
-          </h3>
+          </div>
 
-          <h3>
-            {isNaN(
-              nrows * ncols * this.state.dx * this.state.dy * this.state.bits
-            ) ? (
+          <div style={output}>
+            {" "}
+            {isNaN(diskSpace) ? (
               "Check input"
             ) : (
-              `Disk space: ${(nrows *
-                ncols *
-                this.state.dx *
-                this.state.dy *
-                this.state.bits /
-                8 /
-                1000000000).toFixed(2)} GB (${this.state.bits}-bit DNG)`
+              `Disk space: ${diskSpace.toFixed(2)} GB (${this.state
+                .bits}-bit DNG)`
             )}
-          </h3>
+          </div>
+
+          <div style={output}>
+            {" "}
+            {isNaN(diskSpace) ? (
+              "Check input"
+            ) : (
+              `Processing time (est.): ${(diskSpace *
+                1000 /
+                4.82 /
+                3 /
+                60.0).toFixed(2)} hours`
+            )}
+          </div>
         </form>
         <div style={{ float: "left", paddingLeft: 24 }}>
+          <h2>Map</h2>
           <h3>Single photo</h3>
           {this.renderFootprint(height, width)}
 
@@ -348,5 +388,29 @@ class App extends Component {
     );
   }
 }
+
+const inputLabel = {
+  color: "#404040",
+  padding: 4,
+  marginBottom: 4
+};
+
+const input = {
+  margin: 4,
+  padding: 4,
+  background: "#dddddd",
+  color: "#223366",
+  border: "0px",
+  width: 72,
+  fontWeight: "bold"
+};
+
+const output = {
+  fontWeight: "bold",
+  color: "#22222",
+  background: "#fafafa",
+  padding: 4,
+  marginBottom: 4
+};
 
 export default App;
