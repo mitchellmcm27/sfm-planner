@@ -424,8 +424,8 @@ const input = {
 
 const output = {
   fontWeight: "bold",
-  color: "#22222",
-  background: "#fafafa",
+  color: "#225566",
+  background: "#dddddd",
   padding: 4,
   marginBottom: 4
 };
