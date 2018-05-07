@@ -5,26 +5,31 @@ import DebounceInput from "react-debounce-input";
 
 import logo from "./logo.svg";
 import "./App.css";
-
+import presets from "./lib/uav-presets";
 const debounceTimeout = 500;
 
 class App extends Component {
   constructor() {
     super();
+
     this.state = {
-      resolution: "0.03", // m/px
+      resolution: "0.01", // m/px
       overlapX: "0.75",
       overlapY: "0.75",
       speed: "10", // m/s
-      dx: "4000", // px
-      dy: "3000", // px
-      fov: "78.8", // degrees
+      dx: presets.phantom_4.dx, // px
+      dy: presets.phantom_4.dy, // px
+      fov: presets.phantom_4.fov, // degrees
       bits: "14", // bits per pixel
       surveyDx: "500", // m
-      surveyDy: "500", // m
-      extraPhotos: "0" // number of photos to add on the edges of the survey
+      surveyDy: "200", // m
+      extraPhotos: "3" // number of photos to add on the edges of the survey
     };
   }
+
+  loadPreset = preset => {
+    this.setState({ ...preset });
+  };
 
   handleInputChange = event => {
     const target = event.target;
@@ -39,20 +44,20 @@ class App extends Component {
     // convert to number
     let nrows = nrows_in * 1;
     let ncols = ncols_in * 1;
-
+    let inc = 1;
     // handle bad input
     if (!isFinite(nrows) || isNaN(nrows)) nrows = 0;
     if (!isFinite(ncols) || isNaN(ncols)) ncols = 0;
 
     // make sure we aren't given too many things to process
-    if (nrows > 50) nrows = 50;
-    if (ncols > 50) ncols = 50;
+    if (nrows > 100) inc = 3;
+    if (ncols > 100) inc = 3;
 
     let rows = new Array(nrows);
     let cols = new Array(ncols);
 
-    for (let i = 0; i < nrows; i++) rows[i] = i;
-    for (let j = 0; j < ncols; j++) cols[j] = j;
+    for (let i = 0; i < nrows; i = i + inc) rows[i] = i;
+    for (let j = 0; j < ncols; j = j + inc) cols[j] = j;
 
     return cols.map(j => {
       return rows.map(i => {
@@ -110,34 +115,36 @@ class App extends Component {
                 </span>
               </span>
             )}
-            {last && this.renderSurveyArea(height, width)}
+            {last && (
+              <div
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  width:
+                    width * (1 - this.state.overlapX) * j +
+                    width * this.state.overlapX,
+                  top: 0,
+                  height:
+                    height * (1 - this.state.overlapY) * i +
+                    height * this.state.overlapY,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center"
+                }}
+              >
+                <div
+                  style={{
+                    width: this.state.surveyDx,
+                    height: this.state.surveyDy,
+                    border: "3px solid #ff3355"
+                  }}
+                />
+              </div>
+            )}
           </div>
         );
       });
     });
-  }
-
-  renderSurveyArea(height, width) {
-    return (
-      <div
-        style={{
-          position: "absolute",
-          left:
-            this.state.extraPhotos * 1 * (1 - this.state.overlapX) * width / 2 +
-            width / 2,
-          top:
-            this.state.extraPhotos *
-              1 *
-              (1 - this.state.overlapY) *
-              height /
-              2 +
-            height / 2,
-          width: this.state.surveyDx,
-          height: this.state.surveyDy,
-          border: "3px solid #ff3355"
-        }}
-      />
-    );
   }
 
   renderFootprint(height, width) {
@@ -154,10 +161,12 @@ class App extends Component {
   }
 
   render() {
-    const droneHeight = (this.state.dy *
+    const droneHeight = (
+      Math.sqrt(this.state.dy * this.state.dy + this.state.dx * this.state.dx) /
+      2 *
       this.state.resolution /
-      2 /
-      Math.tan(this.state.fov * Math.PI / 180 / 2)).toFixed(2);
+      Math.tan(this.state.fov * Math.PI / 180 / 2)
+    ).toFixed(2);
 
     const height = this.state.dy * this.state.resolution;
     const width = this.state.dx * this.state.resolution;
@@ -343,52 +352,45 @@ class App extends Component {
           </label>
           <h2>Calculations</h2>
           <div style={output}>
-            {isNaN(droneHeight) ? (
-              "Check input"
-            ) : (
-              `Drone height: ${droneHeight} meters`
-            )}
+            {isNaN(droneHeight)
+              ? "Check input"
+              : `Altitude: ${droneHeight} meters`}
           </div>
 
           <div style={output}>
             {" "}
-            {isNaN(frameInterval) ? (
-              "Check input"
-            ) : (
-              `Photo interval: ${frameInterval} seconds`
-            )}
+            {isNaN(frameInterval)
+              ? "Check input"
+              : `Photo interval: ${frameInterval} seconds`}
           </div>
 
           <div style={output}>
             {" "}
-            {isNaN(nrows * ncols) ? (
-              "Check input"
-            ) : (
-              `Number of photos: ${nrows * ncols} (${nrows}x${ncols})`
-            )}
+            {isNaN(nrows * ncols)
+              ? "Check input"
+              : `Number of photos: ${nrows * ncols} (${nrows}x${ncols})`}
           </div>
 
           <div style={output}>
             {" "}
-            {isNaN(diskSpace) ? (
-              "Check input"
-            ) : (
-              `Disk space: ${diskSpace.toFixed(2)} GB (${this.state
-                .bits}-bit DNG)`
-            )}
+            {isNaN(diskSpace)
+              ? "Check input"
+              : `Disk space: ${diskSpace.toFixed(2)} GB (${
+                  this.state.bits
+                }-bit DNG)`}
           </div>
 
           <div style={output}>
             {" "}
-            {isNaN(diskSpace) ? (
-              "Check input"
-            ) : (
-              `Processing time (est.): ${(diskSpace *
-                1000 /
-                4.82 /
-                3 /
-                60.0).toFixed(2)} hours`
-            )}
+            {isNaN(diskSpace)
+              ? "Check input"
+              : `Processing time (est.): ${(
+                  diskSpace *
+                  1000 /
+                  4.82 /
+                  3 /
+                  60.0
+                ).toFixed(2)} hours`}
           </div>
         </form>
         <div style={{ float: "left", paddingLeft: 24 }}>
